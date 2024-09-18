@@ -23,6 +23,10 @@
     "ptau": "powersOfTau28_hez_final_16",
     "skipSolidityGenaration": false
   },
+  "anon_enc_nullifier_kyc": {
+    "ptau": "powersOfTau28_hez_final_16",
+    "skipSolidityGenaration": false
+  },
   "nf_anon": {
     "ptau": "powersOfTau28_hez_final_11",
     "skipSolidityGenaration": false
