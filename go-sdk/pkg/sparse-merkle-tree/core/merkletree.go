@@ -36,9 +36,9 @@ type SparseMerkleTree interface {
 	// Root returns the root hash of the tree
 	Root() NodeIndex
 	// AddLeaf adds a key-value pair to the tree
-	AddLeaf(Node) error
+	AddLeaf(leaf Node) error
 	// GetNode returns the node at the given reference hash
-	GetNode(NodeIndex) (Node, error)
+	GetNode(node NodeIndex) (Node, error)
 	// GetnerateProof generates a proof of existence (or non-existence) of a leaf node
-	GenerateProof(*big.Int, NodeIndex) (Proof, *big.Int, error)
+	GenerateProofs(nodeIndexes []*big.Int, root NodeIndex) ([]Proof, []*big.Int, error)
 }

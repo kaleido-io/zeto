@@ -53,12 +53,10 @@ func (p *proof) ExistingNode() core.Node {
 }
 
 func (p *proof) MarkNonEmptySibling(level uint) {
-	desiredLength := (level + 7) / 8
-	if desiredLength == 0 {
-		desiredLength = 1
-	}
-	if len(p.nonEmptySiblings) <= int(desiredLength) {
-		newBytes := make([]byte, desiredLength)
+	desiredByteLength := level/8 + 1
+	if len(p.nonEmptySiblings) <= int(desiredByteLength) {
+		// the bitmap is not big enough, resize it
+		newBytes := make([]byte, desiredByteLength)
 		if len(p.nonEmptySiblings) == 0 {
 			p.nonEmptySiblings = newBytes
 		} else {
@@ -186,10 +184,12 @@ func calculateRootFromProof(proof *proof, leafNode core.Node) (core.NodeIndex, e
 
 // isBitOnBigEndian tests whether the bit n in bitmap is 1, in Big Endian.
 func isBitOnBigEndian(bitmap []byte, n uint) bool {
-	return bitmap[uint(len(bitmap))-n/8-1]&(1<<(n%8)) != 0
+	byteIdxToCheck := n / 8
+	return bitmap[byteIdxToCheck]&(1<<(n%8)) != 0
 }
 
 // setBitBigEndian sets the bit n in the bitmap to 1, in Big Endian.
 func setBitBigEndian(bitmap []byte, n uint) {
-	bitmap[uint(len(bitmap))-n/8-1] |= 1 << (n % 8)
+	byteIdxToSet := n / 8
+	bitmap[byteIdxToSet] |= 1 << (n % 8)
 }

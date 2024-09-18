@@ -205,22 +205,20 @@ func (s *MerkleTreeTestSuite) TestGenerateProof() {
 	assert.NoError(s.T(), err)
 
 	target1 := node1.Index().BigInt()
-	proof1, foundValue1, err := mt.GenerateProof(target1, mt.Root())
-	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), target1, foundValue1)
-	assert.True(s.T(), proof1.(*proof).existence)
-	valid := VerifyProof(mt.Root(), proof1, node1)
-	assert.True(s.T(), valid)
 
 	utxo3 := node.NewFungible(big.NewInt(10), alice.PublicKey, big.NewInt(12347))
 	node3, err := node.NewLeafNode(utxo3)
 	assert.NoError(s.T(), err)
 	target2 := node3.Index().BigInt()
-	proof2, _, err := mt.GenerateProof(target2, mt.Root())
+	proofs, foundValues, err := mt.GenerateProofs([]*big.Int{target1, target2}, mt.Root())
 	assert.NoError(s.T(), err)
-	assert.False(s.T(), proof2.(*proof).existence)
+	assert.Equal(s.T(), target1, foundValues[0])
+	assert.True(s.T(), proofs[0].(*proof).existence)
+	valid := VerifyProof(mt.Root(), proofs[0], node1)
+	assert.True(s.T(), valid)
+	assert.False(s.T(), proofs[1].(*proof).existence)
 
-	proof3, err := proof1.ToCircomVerifierProof(target1, foundValue1, mt.Root(), levels)
+	proof3, err := proofs[0].ToCircomVerifierProof(target1, foundValues[0], mt.Root(), levels)
 	assert.NoError(s.T(), err)
 	assert.False(s.T(), proof3.IsOld0)
 }
@@ -254,11 +252,11 @@ func (s *MerkleTreeTestSuite) TestVerifyProof() {
 
 		target := n.Index().BigInt()
 		root := mt.Root()
-		p, _, err := mt.GenerateProof(target, root)
+		p, _, err := mt.GenerateProofs([]*big.Int{target}, root)
 		assert.NoError(s.T(), err)
-		assert.True(s.T(), p.(*proof).existence)
+		assert.True(s.T(), p[0].(*proof).existence)
 
-		valid := VerifyProof(root, p, n)
+		valid := VerifyProof(root, p[0], n)
 		assert.True(s.T(), valid)
 	}()
 

@@ -121,14 +121,29 @@ func (mt *sparseMerkleTree) GetNode(key core.NodeIndex) (core.Node, error) {
 // GenerateProof generates the proof of existence (or non-existence) of a leaf node
 // for a Merkle Tree given the root. It uses the node's index to represent the node.
 // If the rootKey is nil, the current merkletree root is used
-func (mt *sparseMerkleTree) GenerateProof(k *big.Int, rootKey core.NodeIndex) (core.Proof, *big.Int, error) {
+func (mt *sparseMerkleTree) GenerateProofs(keys []*big.Int, rootKey core.NodeIndex) ([]core.Proof, []*big.Int, error) {
 	mt.RLock()
 	defer mt.RUnlock()
 
+	merkleProofs := make([]core.Proof, len(keys))
+	foundValues := make([]*big.Int, len(keys))
+	for i, key := range keys {
+		proof, value, err := mt.generateProof(key, rootKey)
+		if err != nil {
+			return nil, nil, err
+		}
+		merkleProofs[i] = proof
+		foundValues[i] = value
+	}
+
+	return merkleProofs, foundValues, nil
+}
+
+func (mt *sparseMerkleTree) generateProof(key *big.Int, rootKey core.NodeIndex) (core.Proof, *big.Int, error) {
 	p := &proof{}
 	var siblingKey core.NodeIndex
 
-	kHash, err := node.NewNodeIndexFromBigInt(k)
+	kHash, err := node.NewNodeIndexFromBigInt(key)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -177,7 +192,7 @@ func (mt *sparseMerkleTree) GenerateProof(k *big.Int, rootKey core.NodeIndex) (c
 			p.siblings = append(p.siblings, siblingKey)
 		}
 	}
-	return nil, nil, ErrKeyNotFound
+	return nil, nil, ErrReachedMaxLevel
 }
 
 // must be called from inside a read lock
